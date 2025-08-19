@@ -15,29 +15,45 @@ import {
   Shield,
   Settings
 } from "lucide-react";
-import { getCurrentUser, getUserRole } from "@/data/mockData";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Mock login state
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const { user, isAuthenticated, login, logout, isLoading } = useAuth();
 
-  const user = getCurrentUser();
-  const userRole = getUserRole();
+  const userRole = user?.role || 'user';
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoggedIn(true);
-    setCurrentPage('dashboard');
+    try {
+      await login(loginForm.email, loginForm.password);
+      setCurrentPage('dashboard');
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    logout();
     setCurrentPage('dashboard');
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <User className="w-8 h-8 text-primary-foreground" />
+          </div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Login Screen
-  if (!isLoggedIn) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
         <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm shadow-card">
